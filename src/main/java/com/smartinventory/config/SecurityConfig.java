@@ -15,6 +15,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import java.util.List;
 
@@ -55,41 +56,26 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // -------------------------------------------------
                         // CORS PREFLIGHT
-                        // -------------------------------------------------
-
                         .requestMatchers(
                                 HttpMethod.OPTIONS,
                                 "/**"
                         ).permitAll()
 
-
-                        // -------------------------------------------------
                         // PUBLIC LOGIN
-                        // -------------------------------------------------
-
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/users/login"
                         ).permitAll()
 
-
-                        // -------------------------------------------------
                         // PUBLIC REGISTRATION
-                        // -------------------------------------------------
-
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/users/register",
                                 "/api/users/public-register"
                         ).permitAll()
 
-
-                        // -------------------------------------------------
                         // FORGOT PASSWORD
-                        // -------------------------------------------------
-
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/users/forgot-password",
@@ -97,11 +83,7 @@ public class SecurityConfig {
                                 "/api/users/reset-password"
                         ).permitAll()
 
-
-                        // -------------------------------------------------
                         // DASHBOARD
-                        // -------------------------------------------------
-
                         .requestMatchers(
                                 "/api/dashboard/**"
                         ).hasAnyRole(
@@ -110,11 +92,7 @@ public class SecurityConfig {
                                 "EMPLOYEE"
                         )
 
-
-                        // -------------------------------------------------
                         // REPORTS
-                        // -------------------------------------------------
-
                         .requestMatchers(
                                 "/api/reports/**"
                         ).hasAnyRole(
@@ -122,21 +100,12 @@ public class SecurityConfig {
                                 "MANAGER"
                         )
 
-
-                        // -------------------------------------------------
-                        // USERS
-                        // ADMIN ONLY
-                        // -------------------------------------------------
-
+                        // USERS - ADMIN ONLY
                         .requestMatchers(
                                 "/api/users/**"
                         ).hasRole("ADMIN")
 
-
-                        // -------------------------------------------------
                         // SUPPLIERS
-                        // -------------------------------------------------
-
                         .requestMatchers(
                                 "/api/suppliers/**"
                         ).hasAnyRole(
@@ -144,11 +113,7 @@ public class SecurityConfig {
                                 "MANAGER"
                         )
 
-
-                        // -------------------------------------------------
                         // WAREHOUSES
-                        // -------------------------------------------------
-
                         .requestMatchers(
                                 "/api/warehouses/**"
                         ).hasAnyRole(
@@ -156,11 +121,7 @@ public class SecurityConfig {
                                 "MANAGER"
                         )
 
-
-                        // -------------------------------------------------
                         // PURCHASE ORDERS
-                        // -------------------------------------------------
-
                         .requestMatchers(
                                 "/api/purchaseorders/**"
                         ).hasAnyRole(
@@ -168,11 +129,7 @@ public class SecurityConfig {
                                 "MANAGER"
                         )
 
-
-                        // -------------------------------------------------
                         // PRODUCTS
-                        // -------------------------------------------------
-
                         .requestMatchers(
                                 "/api/products/**"
                         ).hasAnyRole(
@@ -181,11 +138,7 @@ public class SecurityConfig {
                                 "EMPLOYEE"
                         )
 
-
-                        // -------------------------------------------------
                         // INVENTORY
-                        // -------------------------------------------------
-
                         .requestMatchers(
                                 "/api/inventories/**"
                         ).hasAnyRole(
@@ -194,11 +147,7 @@ public class SecurityConfig {
                                 "EMPLOYEE"
                         )
 
-
-                        // -------------------------------------------------
                         // SALES ORDERS
-                        // -------------------------------------------------
-
                         .requestMatchers(
                                 "/api/salesorders/**"
                         ).hasAnyRole(
@@ -207,14 +156,9 @@ public class SecurityConfig {
                                 "EMPLOYEE"
                         )
 
-
-                        // -------------------------------------------------
                         // EVERYTHING ELSE
-                        // -------------------------------------------------
-
                         .anyRequest().authenticated()
                 )
-
 
                 // =================================================
                 // JWT FILTER
@@ -224,7 +168,6 @@ public class SecurityConfig {
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
                 );
-
 
         return http.build();
     }
@@ -240,14 +183,8 @@ public class SecurityConfig {
         CorsConfiguration configuration =
                 new CorsConfiguration();
 
-
-        // =========================================================
-        // ALLOWED FRONTENDS
-        // =========================================================
-
         configuration.setAllowedOrigins(
                 List.of(
-                        // Local development
                         "http://localhost:5173",
                         "http://localhost:5174",
                         "http://localhost:5175",
@@ -255,15 +192,9 @@ public class SecurityConfig {
                         "http://localhost:5177",
                         "http://localhost:5178",
 
-                        // Railway production frontend
                         "https://smart-inventory-frontend-production-d849.up.railway.app"
                 )
         );
-
-
-        // =========================================================
-        // ALLOWED HTTP METHODS
-        // =========================================================
 
         configuration.setAllowedMethods(
                 List.of(
@@ -275,26 +206,23 @@ public class SecurityConfig {
                 )
         );
 
-
-        // =========================================================
-        // ALLOWED HEADERS
-        // =========================================================
-
         configuration.setAllowedHeaders(
-                List.of("*")
+                List.of(
+                        "Authorization",
+                        "Content-Type",
+                        "Accept",
+                        "Origin",
+                        "X-Requested-With"
+                )
         );
 
-
-        // =========================================================
-        // ALLOW AUTHORIZATION / COOKIES
-        // =========================================================
+        configuration.setExposedHeaders(
+                List.of(
+                        "Authorization"
+                )
+        );
 
         configuration.setAllowCredentials(true);
-
-
-        // =========================================================
-        // REGISTER CORS
-        // =========================================================
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
@@ -304,7 +232,18 @@ public class SecurityConfig {
                 configuration
         );
 
-
         return source;
+    }
+
+
+    // =========================================================
+    // EXPLICIT CORS FILTER
+    // Runs before JWT authentication
+    // =========================================================
+
+    @Bean
+    public CorsFilter corsFilter() {
+
+        return new CorsFilter(corsConfigurationSource());
     }
 }
