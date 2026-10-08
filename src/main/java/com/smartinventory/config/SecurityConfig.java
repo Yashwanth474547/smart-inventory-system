@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 
 import org.springframework.http.HttpMethod;
 
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -25,6 +24,7 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+
     // =========================================================
     // SECURITY FILTER CHAIN
     // =========================================================
@@ -39,7 +39,9 @@ public class SecurityConfig {
                 // CORS
                 // =================================================
 
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(
+                        corsConfigurationSource()
+                ))
 
                 // =================================================
                 // CSRF
@@ -53,32 +55,52 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // -----------------------------------------
+                        // -------------------------------------------------
                         // CORS PREFLIGHT
-                        // -----------------------------------------
+                        // -------------------------------------------------
 
                         .requestMatchers(
                                 HttpMethod.OPTIONS,
                                 "/**"
                         ).permitAll()
 
-                        // -----------------------------------------
-                        // PUBLIC AUTHENTICATION
-                        // -----------------------------------------
+
+                        // -------------------------------------------------
+                        // PUBLIC LOGIN
+                        // -------------------------------------------------
 
                         .requestMatchers(
                                 HttpMethod.POST,
-                                "/api/users/login",
+                                "/api/users/login"
+                        ).permitAll()
+
+
+                        // -------------------------------------------------
+                        // PUBLIC REGISTRATION
+                        // -------------------------------------------------
+
+                        .requestMatchers(
+                                HttpMethod.POST,
                                 "/api/users/register",
-                                "/api/users/public-register",
+                                "/api/users/public-register"
+                        ).permitAll()
+
+
+                        // -------------------------------------------------
+                        // FORGOT PASSWORD
+                        // -------------------------------------------------
+
+                        .requestMatchers(
+                                HttpMethod.POST,
                                 "/api/users/forgot-password",
                                 "/api/users/verify-otp",
                                 "/api/users/reset-password"
                         ).permitAll()
 
-                        // -----------------------------------------
+
+                        // -------------------------------------------------
                         // DASHBOARD
-                        // -----------------------------------------
+                        // -------------------------------------------------
 
                         .requestMatchers(
                                 "/api/dashboard/**"
@@ -88,9 +110,10 @@ public class SecurityConfig {
                                 "EMPLOYEE"
                         )
 
-                        // -----------------------------------------
+
+                        // -------------------------------------------------
                         // REPORTS
-                        // -----------------------------------------
+                        // -------------------------------------------------
 
                         .requestMatchers(
                                 "/api/reports/**"
@@ -99,17 +122,20 @@ public class SecurityConfig {
                                 "MANAGER"
                         )
 
-                        // -----------------------------------------
-                        // USERS - ADMIN ONLY
-                        // -----------------------------------------
+
+                        // -------------------------------------------------
+                        // USERS
+                        // ADMIN ONLY
+                        // -------------------------------------------------
 
                         .requestMatchers(
                                 "/api/users/**"
                         ).hasRole("ADMIN")
 
-                        // -----------------------------------------
+
+                        // -------------------------------------------------
                         // SUPPLIERS
-                        // -----------------------------------------
+                        // -------------------------------------------------
 
                         .requestMatchers(
                                 "/api/suppliers/**"
@@ -118,9 +144,10 @@ public class SecurityConfig {
                                 "MANAGER"
                         )
 
-                        // -----------------------------------------
+
+                        // -------------------------------------------------
                         // WAREHOUSES
-                        // -----------------------------------------
+                        // -------------------------------------------------
 
                         .requestMatchers(
                                 "/api/warehouses/**"
@@ -129,9 +156,10 @@ public class SecurityConfig {
                                 "MANAGER"
                         )
 
-                        // -----------------------------------------
+
+                        // -------------------------------------------------
                         // PURCHASE ORDERS
-                        // -----------------------------------------
+                        // -------------------------------------------------
 
                         .requestMatchers(
                                 "/api/purchaseorders/**"
@@ -140,9 +168,10 @@ public class SecurityConfig {
                                 "MANAGER"
                         )
 
-                        // -----------------------------------------
+
+                        // -------------------------------------------------
                         // PRODUCTS
-                        // -----------------------------------------
+                        // -------------------------------------------------
 
                         .requestMatchers(
                                 "/api/products/**"
@@ -152,9 +181,10 @@ public class SecurityConfig {
                                 "EMPLOYEE"
                         )
 
-                        // -----------------------------------------
+
+                        // -------------------------------------------------
                         // INVENTORY
-                        // -----------------------------------------
+                        // -------------------------------------------------
 
                         .requestMatchers(
                                 "/api/inventories/**"
@@ -164,9 +194,10 @@ public class SecurityConfig {
                                 "EMPLOYEE"
                         )
 
-                        // -----------------------------------------
+
+                        // -------------------------------------------------
                         // SALES ORDERS
-                        // -----------------------------------------
+                        // -------------------------------------------------
 
                         .requestMatchers(
                                 "/api/salesorders/**"
@@ -176,12 +207,14 @@ public class SecurityConfig {
                                 "EMPLOYEE"
                         )
 
-                        // -----------------------------------------
+
+                        // -------------------------------------------------
                         // EVERYTHING ELSE
-                        // -----------------------------------------
+                        // -------------------------------------------------
 
                         .anyRequest().authenticated()
                 )
+
 
                 // =================================================
                 // JWT FILTER
@@ -192,8 +225,10 @@ public class SecurityConfig {
                         UsernamePasswordAuthenticationFilter.class
                 );
 
+
         return http.build();
     }
+
 
     // =========================================================
     // CORS CONFIGURATION
@@ -205,8 +240,11 @@ public class SecurityConfig {
         CorsConfiguration configuration =
                 new CorsConfiguration();
 
-        // React / Vite frontend
-        // Allow common Vite development ports
+
+        // =========================================================
+        // ALLOWED FRONTENDS
+        // =========================================================
+
         configuration.setAllowedOrigins(
                 List.of(
                         "http://localhost:5173",
@@ -218,7 +256,11 @@ public class SecurityConfig {
                 )
         );
 
-        // HTTP methods
+
+        // =========================================================
+        // ALLOWED HTTP METHODS
+        // =========================================================
+
         configuration.setAllowedMethods(
                 List.of(
                         "GET",
@@ -229,13 +271,26 @@ public class SecurityConfig {
                 )
         );
 
-        // Request headers
+
+        // =========================================================
+        // ALLOWED HEADERS
+        // =========================================================
+
         configuration.setAllowedHeaders(
                 List.of("*")
         );
 
-        // Allow Authorization header / credentials
+
+        // =========================================================
+        // ALLOW AUTHORIZATION / COOKIES
+        // =========================================================
+
         configuration.setAllowCredentials(true);
+
+
+        // =========================================================
+        // REGISTER CORS
+        // =========================================================
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
@@ -244,6 +299,7 @@ public class SecurityConfig {
                 "/**",
                 configuration
         );
+
 
         return source;
     }
