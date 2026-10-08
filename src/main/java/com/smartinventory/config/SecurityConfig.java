@@ -247,12 +247,16 @@ public class SecurityConfig {
 
         configuration.setAllowedOrigins(
                 List.of(
+                        // Local development
                         "http://localhost:5173",
                         "http://localhost:5174",
                         "http://localhost:5175",
                         "http://localhost:5176",
                         "http://localhost:5177",
-                        "http://localhost:5178"
+                        "http://localhost:5178",
+
+                        // Railway production frontend
+                        "https://smart-inventory-frontend-production-d849.up.railway.app"
                 )
         );
 
