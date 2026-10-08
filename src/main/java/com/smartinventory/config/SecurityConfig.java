@@ -34,6 +34,7 @@ public class SecurityConfig {
             HttpSecurity http) throws Exception {
 
         http
+
                 // =================================================
                 // CORS
                 // =================================================
@@ -99,8 +100,7 @@ public class SecurityConfig {
                         )
 
                         // -----------------------------------------
-                        // USERS
-                        // ADMIN ONLY
+                        // USERS - ADMIN ONLY
                         // -----------------------------------------
 
                         .requestMatchers(
@@ -205,10 +205,16 @@ public class SecurityConfig {
         CorsConfiguration configuration =
                 new CorsConfiguration();
 
-        // React/Vite frontend
+        // React / Vite frontend
+        // Allow common Vite development ports
         configuration.setAllowedOrigins(
                 List.of(
-                        "http://localhost:5173"
+                        "http://localhost:5173",
+                        "http://localhost:5174",
+                        "http://localhost:5175",
+                        "http://localhost:5176",
+                        "http://localhost:5177",
+                        "http://localhost:5178"
                 )
         );
 
